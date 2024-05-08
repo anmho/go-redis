@@ -18,10 +18,15 @@ var handlers = map[string]func([]Value) Value{
 	"PING": ping,
 	"SET":  set,
 	"GET":  get,
+	"HSET": hset,
+	"HGET": hget,
 }
 
 var SETs = map[string]string{}
-var SETsMu = &sync.RWMutex{}
+var SETsMu = sync.RWMutex{}
+
+var HSETs = map[string]map[string]string{}
+var HSETsMu = sync.RWMutex{}
 
 func Handle(req Value) (Value, error) {
 	if req.typ != ArrayType {
@@ -66,7 +71,7 @@ func set(args []Value) Value {
 
 func get(args []Value) Value {
 	if len(args) != 1 {
-		return NewError("expected 1 argument")
+		return NewError("expected 1 argument, got %d", len(args))
 	}
 	// Lock for writing
 	// Allow writing
@@ -74,5 +79,37 @@ func get(args []Value) Value {
 	defer SETsMu.RUnlock()
 	var key = args[0].bulk
 	var value = SETs[key]
+	return NewString(value)
+}
+
+func hset(args []Value) Value {
+	if len(args) != 3 {
+		return NewError("expected 3 args, got", len(args))
+	}
+
+	var key = args[0].bulk
+	var field = args[1].bulk
+	var value = args[2].bulk
+	HSETsMu.Lock()
+	defer HSETsMu.Unlock()
+	if _, ok := HSETs[key]; !ok {
+		HSETs[key] = map[string]string{}
+	}
+	HSETs[key][field] = value
+	return NewString("OK")
+}
+
+func hget(args []Value) Value {
+	if len(args) != 2 {
+		return NewError("expected 3 arg, got", len(args))
+	}
+
+	var key = args[0].bulk
+	var field = args[1].bulk
+
+	HSETsMu.RLock()
+	defer HSETsMu.RUnlock()
+	var value = HSETs[key][field]
+
 	return NewString(value)
 }

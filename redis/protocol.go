@@ -50,8 +50,8 @@ func NewArray(a []Value) Value {
 	return Value{typ: ArrayType, array: a}
 }
 
-func NewError(errMsg string) Value {
-	return Value{typ: ErrorType, str: errMsg}
+func NewError(format string, values ...any) Value {
+	return Value{typ: ErrorType, str: fmt.Sprintf(format, values)}
 }
 
 type Resp struct {
