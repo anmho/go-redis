@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/amho/go-redis/server"
+	"github.com/amho/go-redis/redis"
 	"log"
 	"net"
 )
@@ -26,24 +26,18 @@ func main() {
 	defer conn.Close()
 
 	for {
-		//buf := make([]byte, 1024)
-		resp := server.NewResp(conn)
-		value, err := resp.Read()
+		resp := redis.NewResp(conn)
+		req, err := resp.Read()
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println(value)
-		//_, err := conn.Read(buf)
-		//log.Println(string(buf))
-		//resp.Read()
+		log.Println(req)
 
-		//if err != nil {
-		//	if err == io.EOF {
-		//		break
-		//	}
-		//	log.Fatalln("error reading from client", err.Error())
-		//}
-
-		conn.Write([]byte("+OK\r\n"))
+		writer := redis.NewWriter(conn)
+		v := redis.NewString("OK")
+		err = writer.Write(v)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 }

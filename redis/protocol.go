@@ -1,9 +1,10 @@
-package server
+package redis
 
 import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"strconv"
 )
 
@@ -15,6 +16,8 @@ const (
 	ARRAY   = '*'
 )
 
+type RespDataType string
+
 type Value struct {
 	typ   string
 	str   string
@@ -23,12 +26,89 @@ type Value struct {
 	array []Value
 }
 
+func NewString(s string) Value {
+	return Value{typ: "string", str: s}
+}
+
+func NewInteger(num int) Value {
+	return Value{typ: "integer", num: num}
+}
+func NewBulkString(s string) Value {
+	return Value{typ: "bulk", bulk: s}
+}
+
+func NewArray(a []Value) Value {
+	return Value{typ: "array", array: a}
+}
+
 func (v Value) Marshal() []byte {
 	switch v.typ {
+
+	case "array":
+		return v.marshalArray()
+	case "bulk":
+		return v.marshalBulk()
 	case "string":
-		return marshalString()
-	case ""
+		return v.marshalString()
+	case "null":
+		return v.marshalNull()
+	case "int":
+		return v.marshalInteger()
+	case "error":
+		return v.marshalError()
+	default:
+		return []byte{}
 	}
+}
+
+func (v Value) marshalArray() []byte {
+	var bytes []byte
+	numElements := len(v.array)
+	bytes = append(bytes, ARRAY)
+	bytes = append(bytes, strconv.Itoa(numElements)...)
+	bytes = append(bytes, '\r', '\n')
+	for _, child := range v.array {
+		//fmt.Println((child.Marshal()))
+		bytes = append(bytes, child.Marshal()...)
+	}
+	return bytes
+}
+
+func (v Value) marshalBulk() []byte {
+	var bytes []byte
+	bytes = append(bytes, BULK)
+	bytes = append(bytes, strconv.Itoa(len(v.bulk))...)
+	bytes = append(bytes, '\r', '\n')
+	bytes = append(bytes, v.bulk...)
+	bytes = append(bytes, '\r', '\n')
+	return bytes
+}
+func (v Value) marshalString() []byte {
+	var bytes []byte
+	bytes = append(bytes, STRING)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+	return bytes
+}
+
+func (v Value) marshalInteger() []byte {
+	var bytes []byte
+	bytes = append(bytes, INTEGER)
+	bytes = append(bytes, strconv.Itoa(v.num)...)
+	bytes = append(bytes, '\r', '\n')
+	return bytes
+}
+
+func (v Value) marshalNull() []byte {
+	return []byte("$-1\r\n")
+}
+
+func (v Value) marshalError() []byte {
+	var bytes []byte
+	bytes = append(bytes, ERROR)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+	return bytes
 }
 
 type Resp struct {
@@ -78,9 +158,9 @@ func (r *Resp) readInteger() (x int, n int, err error) {
 }
 
 func (r *Resp) Read() (Value, error) {
-	_type, err := r.reader.ReadByte() // read the first byte to identify the value
+	_type, err := r.reader.ReadByte() // read the first byte to identify the input
 	if err != nil {
-		return Value{}, err
+		return Value{}, fmt.Errorf("reading type byte: %w", err)
 	}
 
 	switch _type {
@@ -102,6 +182,7 @@ func (r *Resp) readArray() (Value, error) {
 	if err != nil {
 		return v, err
 	}
+	log.Println("length:", length)
 	v.array = make([]Value, 0)
 	// do the same for every element in the array
 	//for i := 0; i < length; i++ {
@@ -137,7 +218,7 @@ func (r *Resp) readBulk() (Value, error) {
 	if err != nil {
 		return Value{}, fmt.Errorf("reading bulk of %d bytes: %w", length, err)
 	} // fills the buffer?
-
+	v.bulk = string(bulk)
 	_, _, err = r.readLine()
 	if err != nil {
 		return Value{}, fmt.Errorf("reading remaining CRLF of bulk: %w", err)
