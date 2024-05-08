@@ -52,37 +52,53 @@ func Test_marshalArray(t *testing.T) {
 func TestResp_Marshal(t *testing.T) {
 	assert := assert.New(t)
 	tests := []struct {
-		input Value
-		want  []byte
+		input       Value
+		want        []byte
+		description string
 	}{
 		{
-			Value{"string", "OK", 0, "", nil},
+			Value{typ: "string", str: "OK"},
 			[]byte("+OK\r\n"),
+			"OK",
 		},
 		{
-			input: Value{"error", "Error message", 0, "", nil},
-			want:  []byte("-Error message\r\n"),
+			Value{typ: "error", str: "Error message"},
+			[]byte("-Error message\r\n"),
+			"error",
 		},
 		{
-			input: Value{"int", "", 10, "", nil},
-			want:  []byte(":10\r\n"),
+			Value{typ: "int", num: 10},
+			[]byte(":10\r\n"),
+			"number",
 		},
 		{
-			input: Value{"bulk", "", 0, "bulk-string", nil},
-			want:  []byte("$11\r\nbulk-string\r\n"),
+			Value{typ: "bulk", bulk: "bulk-string"},
+			[]byte("$11\r\nbulk-string\r\n"),
+			"bulk string",
 		},
 		{
-			input: Value{"bulk", "", 0, "hello", nil},
-			want:  []byte("$5\r\nhello\r\n"),
+			Value{typ: "bulk", bulk: "hello"},
+			[]byte("$5\r\nhello\r\n"),
+			"hello",
 		},
 		{
-			input: Value{"bulk", "", 0, "", nil},
-			want:  []byte("$0\r\n\r\n"),
+			Value{typ: "bulk", bulk: ""},
+			[]byte("$0\r\n\r\n"),
+			"empty string",
+		},
+		{
+			Value{typ: "array", array: []Value{
+				{typ: "string", str: "A"},
+				{typ: "string", str: "B"},
+				{typ: "string", str: "C"},
+			}},
+			[]byte("*3\r\n+A\r\n+B\r\n+C\r\n"),
+			"array",
 		},
 	}
 
 	for i, test := range tests {
-		log.Println("Case", i)
+		log.Println("Case", i, test.description)
 		assert.Equal(string(test.want), string(test.input.Marshal()))
 	}
 }
