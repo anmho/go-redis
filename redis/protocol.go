@@ -16,10 +16,19 @@ const (
 	ARRAY   = '*'
 )
 
-type RespDataType string
+type RespDataType = int
+
+const (
+	ArrayType RespDataType = iota + 1
+	BulkType
+	StringType
+	NullType
+	IntType
+	ErrorType
+)
 
 type Value struct {
-	typ   string
+	typ   RespDataType
 	str   string
 	num   int
 	bulk  string
@@ -27,38 +36,38 @@ type Value struct {
 }
 
 func NewString(s string) Value {
-	return Value{typ: "string", str: s}
+	return Value{typ: StringType, str: s}
 }
 
 func NewInteger(num int) Value {
-	return Value{typ: "integer", num: num}
+	return Value{typ: IntType, num: num}
 }
 func NewBulkString(s string) Value {
-	return Value{typ: "bulk", bulk: s}
+	return Value{typ: BulkType, bulk: s}
 }
 
 func NewArray(a []Value) Value {
-	return Value{typ: "array", array: a}
+	return Value{typ: ArrayType, array: a}
 }
 
 func NewError(errMsg string) Value {
-	return Value{typ: "error", str: errMsg}
+	return Value{typ: ErrorType, str: errMsg}
 }
 
 func (v Value) Marshal() []byte {
 	switch v.typ {
 
-	case "array":
+	case ArrayType:
 		return v.marshalArray()
-	case "bulk":
+	case BulkType:
 		return v.marshalBulk()
-	case "string":
+	case StringType:
 		return v.marshalString()
-	case "null":
+	case NullType:
 		return v.marshalNull()
-	case "int":
+	case IntType:
 		return v.marshalInteger()
-	case "error":
+	case ErrorType:
 		return v.marshalError()
 	default:
 		return []byte{}
@@ -181,7 +190,7 @@ func (r *Resp) Read() (Value, error) {
 func (r *Resp) readArray() (Value, error) {
 	// at this point we just figured out that the type is an array bc of the symbol
 	var v Value
-	v.typ = "array"
+	v.typ = ArrayType
 	length, _, err := r.readInteger() // how many elems in the array
 	if err != nil {
 		return v, err
@@ -210,7 +219,7 @@ func (r *Resp) readBulk() (Value, error) {
 	*/
 
 	v := Value{}
-	v.typ = "bulk"
+	v.typ = BulkType
 
 	length, _, err := r.readInteger()
 	if err != nil {

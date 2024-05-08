@@ -10,26 +10,27 @@ import (
 
 var (
 	ErrBadRequest   = errors.New("invalid request")
-	ErrRESPProtocol = errors.New("invalid resp message")
+	ErrRespProtocol = errors.New("invalid resp message")
 	ErrInvalidCmd   = errors.New("invalid command")
 )
 
 var handlers = map[string]func([]Value) Value{
 	"PING": ping,
 	"SET":  set,
+	"GET":  get,
 }
 
 var SETs = map[string]string{}
 var SETsMu = &sync.RWMutex{}
 
 func Handle(req Value) (Value, error) {
-	if req.typ != "array" {
+	if req.typ != ArrayType {
 		return Value{}, fmt.Errorf("expected array type: %w", ErrBadRequest)
 	}
 	if len(req.array) == 0 {
 		return Value{}, fmt.Errorf("expected non-empty array: %w", ErrBadRequest)
 	}
-	if req.array[0].typ != "bulk" {
+	if req.array[0].typ != BulkType {
 		return Value{}, fmt.Errorf("expected first element bulk type: %w", ErrBadRequest)
 	}
 	command := strings.ToUpper(req.array[0].bulk)
@@ -38,7 +39,7 @@ func Handle(req Value) (Value, error) {
 	if !ok {
 		return Value{}, fmt.Errorf("unknown command '%s': %w", command, ErrBadRequest)
 	}
-	args := req.array[:1]
+	args := req.array[1:]
 	result := handler(args)
 	return result, nil
 }
@@ -49,7 +50,7 @@ func ping(args []Value) Value {
 
 func set(args []Value) Value {
 	if len(args) != 2 {
-		return NewError("expected 2 arguments")
+		return NewError(fmt.Sprintf("expected 2 arguments got %d", len(args)))
 	}
 
 	var key = args[0].bulk

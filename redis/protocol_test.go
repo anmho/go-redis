@@ -34,7 +34,7 @@ func TestResp_marshalString(t *testing.T) {
 	assert := assert.New(t)
 
 	v := Value{
-		typ:   "string",
+		typ:   StringType,
 		str:   "hello",
 		num:   0,
 		bulk:  "",
@@ -57,40 +57,40 @@ func TestResp_Marshal(t *testing.T) {
 		description string
 	}{
 		{
-			Value{typ: "string", str: "OK"},
+			Value{typ: StringType, str: "OK"},
 			[]byte("+OK\r\n"),
 			"OK",
 		},
 		{
-			Value{typ: "error", str: "Error message"},
+			Value{typ: ErrorType, str: "Error message"},
 			[]byte("-Error message\r\n"),
 			"error",
 		},
 		{
-			Value{typ: "int", num: 10},
+			Value{typ: IntType, num: 10},
 			[]byte(":10\r\n"),
 			"number",
 		},
 		{
-			Value{typ: "bulk", bulk: "bulk-string"},
+			Value{typ: BulkType, bulk: "bulk-string"},
 			[]byte("$11\r\nbulk-string\r\n"),
 			"bulk string",
 		},
 		{
-			Value{typ: "bulk", bulk: "hello"},
+			Value{typ: BulkType, bulk: "hello"},
 			[]byte("$5\r\nhello\r\n"),
 			"hello",
 		},
 		{
-			Value{typ: "bulk", bulk: ""},
+			Value{typ: BulkType, bulk: ""},
 			[]byte("$0\r\n\r\n"),
 			"empty string",
 		},
 		{
-			Value{typ: "array", array: []Value{
-				{typ: "string", str: "A"},
-				{typ: "string", str: "B"},
-				{typ: "string", str: "C"},
+			Value{typ: ArrayType, array: []Value{
+				{typ: StringType, str: "A"},
+				{typ: StringType, str: "B"},
+				{typ: StringType, str: "C"},
 			}},
 			[]byte("*3\r\n+A\r\n+B\r\n+C\r\n"),
 			"array",
