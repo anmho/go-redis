@@ -102,8 +102,3 @@ func TestResp_Marshal(t *testing.T) {
 		assert.Equal(string(test.want), string(test.input.Marshal()))
 	}
 }
-
-//func TestResp_readArray(t *testing.T) {
-//	//assert := assert.New(t)
-//
-//}

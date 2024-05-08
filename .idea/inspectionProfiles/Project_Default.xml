@@ -15,6 +15,7 @@
         <method importPath="strings" receiver="*Builder" name="WriteByte" />
         <method importPath="net" receiver="Listener" name="Close" />
         <method importPath="net" receiver="Conn" name="Close" />
+        <method importPath="github.com/amho/go-redis/redis" receiver="*Writer" name="Write" />
       </methods>
     </inspection_tool>
   </profile>

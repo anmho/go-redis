@@ -41,6 +41,10 @@ func NewArray(a []Value) Value {
 	return Value{typ: "array", array: a}
 }
 
+func NewError(errMsg string) Value {
+	return Value{typ: "error", str: errMsg}
+}
+
 func (v Value) Marshal() []byte {
 	switch v.typ {
 

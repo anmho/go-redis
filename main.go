@@ -31,13 +31,20 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		log.Println(req)
 
 		writer := redis.NewWriter(conn)
-		v := redis.NewString("OK")
-		err = writer.Write(v)
+
+		log.Println(req)
+
+		result, err := redis.Handle(req)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			continue
+		}
+		err = writer.Write(result)
+		if err != nil {
+			log.Println(err)
+			continue
 		}
 	}
 }
