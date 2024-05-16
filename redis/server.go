@@ -55,6 +55,10 @@ func (r *Redis) ListenAndServe(port int) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		go serve(conn)
+
+		go func() {
+			serve(conn)
+			defer conn.Close()
+		}()
 	}
 }

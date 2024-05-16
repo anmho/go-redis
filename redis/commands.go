@@ -15,11 +15,12 @@ var (
 )
 
 var handlers = map[string]func([]Value) Value{
-	"PING": ping,
-	"SET":  set,
-	"GET":  get,
-	"HSET": hset,
-	"HGET": hget,
+	"PING":    ping,
+	"SET":     set,
+	"GET":     get,
+	"HSET":    hset,
+	"HGET":    hget,
+	"HGETALL": hgetall,
 }
 
 var SETs = map[string]string{}
@@ -112,4 +113,10 @@ func hget(args []Value) Value {
 	var value = HSETs[key][field]
 
 	return NewString(value)
+}
+
+func hgetall(args []Value) Value {
+	log.Println("getting all values associated with key")
+
+	return Value{}
 }
