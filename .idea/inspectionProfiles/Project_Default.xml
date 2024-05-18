@@ -16,6 +16,7 @@
         <method importPath="net" receiver="Listener" name="Close" />
         <method importPath="net" receiver="Conn" name="Close" />
         <method importPath="github.com/amho/go-redis/redis" receiver="*Writer" name="Write" />
+        <method importPath="github.com/amho/go-redis/redis" receiver="*Aof" name="Close" />
       </methods>
     </inspection_tool>
   </profile>

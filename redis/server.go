@@ -13,7 +13,7 @@ func New() *Redis {
 	return &Redis{}
 }
 
-func serve(conn net.Conn) {
+func serve(conn net.Conn, aof *Aof) {
 	defer conn.Close()
 
 	for {
@@ -32,6 +32,14 @@ func serve(conn net.Conn) {
 			log.Println(err)
 			continue
 		}
+		command := req.array[0].bulk
+		if command == "SET" || command == "HSET" {
+			err := aof.Write(req)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		err = writer.Write(result)
 		if err != nil {
 			log.Println(err)
@@ -49,6 +57,17 @@ func (r *Redis) ListenAndServe(port int) {
 
 	fmt.Printf("listening on port %d\n", port)
 
+	aof, err := NewAof("database.aof")
+	if err != nil {
+		panic(err)
+	}
+	defer aof.Close()
+	err = aof.Read()
+	if err != nil {
+		panic(err)
+	}
+
+	// should prevent busy spinning
 	for {
 		conn, err := listener.Accept()
 		fmt.Println("Accepted connection from client")
@@ -57,7 +76,7 @@ func (r *Redis) ListenAndServe(port int) {
 		}
 
 		go func() {
-			serve(conn)
+			serve(conn, aof)
 			defer conn.Close()
 		}()
 	}

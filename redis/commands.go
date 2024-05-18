@@ -47,6 +47,7 @@ func Handle(req Value) (Value, error) {
 	}
 	args := req.array[1:]
 	result := handler(args)
+
 	return result, nil
 }
 
