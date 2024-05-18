@@ -116,7 +116,20 @@ func hget(args []Value) Value {
 }
 
 func hgetall(args []Value) Value {
-	log.Println("getting all values associated with key")
+	key := args[0].bulk
+	HSETsMu.RLock()
+	defer HSETsMu.RUnlock()
+	fieldSets, ok := HSETs[key]
+	if !ok {
+		return NewArray([]Value{})
+	}
 
-	return Value{}
+	var result []Value
+	for field, value := range fieldSets {
+		fieldValue := NewString(field)
+		valueValue := NewString(value)
+		result = append(result, fieldValue, valueValue)
+	}
+
+	return NewArray(result)
 }
