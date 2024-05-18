@@ -2,8 +2,8 @@ package redis
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"testing"
 )
 
@@ -31,6 +31,7 @@ func TestResp_readInteger(t *testing.T) {
 }
 
 func TestResp_marshalString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	v := Value{
@@ -50,7 +51,7 @@ func Test_marshalArray(t *testing.T) {
 }
 
 func TestResp_Marshal(t *testing.T) {
-	assert := assert.New(t)
+	t.Parallel()
 	tests := []struct {
 		input       Value
 		want        []byte
@@ -98,7 +99,11 @@ func TestResp_Marshal(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		log.Println("Case", i, test.description)
-		assert.Equal(string(test.want), string(test.input.Marshal()))
+		name := fmt.Sprintf("case %d: %s", i, test.description)
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, string(test.want), string(test.input.Marshal()))
+		})
+
 	}
 }

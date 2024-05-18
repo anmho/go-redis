@@ -51,7 +51,7 @@ func NewArray(a []Value) Value {
 }
 
 func NewError(format string, values ...any) Value {
-	return Value{typ: ErrorType, str: fmt.Sprintf(format, values)}
+	return Value{typ: ErrorType, str: fmt.Sprintf(format, values...)}
 }
 
 type Resp struct {

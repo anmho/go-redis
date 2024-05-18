@@ -57,7 +57,7 @@ func ping(args []Value) Value {
 
 func set(args []Value) Value {
 	if len(args) != 2 {
-		return NewError(fmt.Sprintf("expected 2 arguments got %d", len(args)))
+		return NewError("expected 2 arguments got %d", len(args))
 	}
 
 	var key = args[0].bulk
@@ -86,7 +86,7 @@ func get(args []Value) Value {
 
 func hset(args []Value) Value {
 	if len(args) != 3 {
-		return NewError("expected 3 args, got", len(args))
+		return NewError("expected 3 args, got %d", len(args))
 	}
 
 	var key = args[0].bulk
@@ -103,7 +103,7 @@ func hset(args []Value) Value {
 
 func hget(args []Value) Value {
 	if len(args) != 2 {
-		return NewError("expected 3 arg, got", len(args))
+		return NewError("expected 3 arg, got %d", len(args))
 	}
 
 	var key = args[0].bulk
