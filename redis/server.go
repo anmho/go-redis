@@ -29,7 +29,7 @@ func serve(conn net.Conn, aof *Aof) {
 
 		result, err := Handle(req)
 		if err != nil {
-			log.Println(err)
+			writer.Write(NewError(err.Error()))
 			continue
 		}
 		command := req.array[0].bulk

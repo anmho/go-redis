@@ -20,3 +20,6 @@ cli: vet
 .PHONY: test
 test:
 	go test -cover ./...
+
+image:
+	docker build -t go-redis .
