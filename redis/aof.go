@@ -63,9 +63,6 @@ func (aof *Aof) Write(value Value) error {
 
 func (aof *Aof) Read() error {
 	aof.file.Seek(0, io.SeekStart)
-	//if err != nil && err != io.EOF {
-	//	return err
-	//}
 
 	reader := NewResp(aof.file)
 	for {
